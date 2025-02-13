@@ -97,7 +97,7 @@ uint8_t const desc_hid_report[] =
 
 void setup() {
     USBDevice.setProductDescriptor("CMSIS-DAP");
-    //USBDevice.setID(0x0D28,0x0204);
+    USBDevice.setID(0x0D28,0x0204);
     
     usb_hid.enableOutEndpoint(true);
     usb_hid.setPollInterval(2);
@@ -106,13 +106,24 @@ void setup() {
     usb_hid.setReportDescriptor(desc_hid_report, sizeof(desc_hid_report));
     usb_hid.setReportCallback(get_report_callback, set_report_callback);
     
-    usb_hid.begin();
+    int ret = usb_hid.begin();
     
     pinMode(LED_BUILTIN, OUTPUT);
     
     baud = old_baud = 115200;
     Serial.begin(baud);
     SerialTTL.begin(baud);
+
+    if (!ret) {
+        Serial.println("usb hid begin failed");
+    }
+
+    if (USBDevice.mounted()) {
+        Serial.println("DAPLink reattach");
+        USBDevice.detach();
+        delay(10);
+        USBDevice.attach();
+    }
 
     // wait until device mounted
     while( !USBDevice.mounted() ) delay(1);
@@ -129,12 +140,14 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
+#if 0
   baud = Serial.baud();
   if (baud != old_baud) {
     SerialTTL.begin(baud);
     while (!SerialTTL);
     old_baud = baud;
   }
+#endif
 
   if (Serial.available() > 0)
   {
@@ -174,6 +187,7 @@ void set_report_callback(uint8_t report_id, hid_report_type_t report_type, uint8
     // main_led_state_t led_next_state = MAIN_LED_FLASH;
     switch (report_type) {
         case 0:
+        case 2:
             if (bufsize == 0) {
                 break;
             }

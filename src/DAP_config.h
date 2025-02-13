@@ -35,8 +35,10 @@
 #include "Adafruit_TinyUSB.h"
 #endif
 
-#define __forceinline __attribute__((always_inline))
+#define __forceinline __attribute__((always_inline)) inline
+#if !defined(ARDUINO_ARCH_RP2040) && !defined(ARDUINO_ARCH_RP2350)
 #define __weak
+#endif
 #define OS_TID int
 #define __task
 #define U64 uint64_t
@@ -193,6 +195,17 @@ Provides definitions about:
 #define PIN_LED_RUNNING   PIN_LED_RXL
 #define Fast              1
 
+#elif defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
+
+#define PIN_SWDIO         D0
+#define PIN_SWCLK         D1
+#define PIN_TDO           D2
+#define PIN_TDI           D3
+#define PIN_nRESET        D4
+#define PIN_LED_CONNECTED LED_BUILTIN
+#define PIN_LED_RUNNING   LED_BUILTIN
+#define Fast              0
+
 #else
 
 #define PIN_SWDIO         A0
@@ -279,7 +292,11 @@ struct PortPin
     this->pinMode(this->mode);
   }
   void pinMode(int mode) {
+#if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
+    ::pinMode(this->pin, (PinMode)mode);
+#else
     ::pinMode(this->pin, mode);
+#endif
     this->mode = mode;
   }
   void enableOutput() {
@@ -618,7 +635,12 @@ default, the DWT timer is used.  The frequency of this timer is configured with 
 /** Get timestamp of Test Domain Timer.
 \return Current timestamp value.
 */
-__STATIC_INLINE uint32_t TIMESTAMP_GET (void) {
+// __STATIC_INLINE uint32_t TIMESTAMP_GET (void) {
+inline uint32_t TIMESTAMP_GET (void) {
+#if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350)
+  return time_us_32(); // micros() same
+
+#else
   uint32_t ticks = SysTick->VAL;
   	// Configure SysTick to trigger every millisecond using the CPU Clock
 	SysTick->CTRL = 0;					    // Disable SysTick
@@ -627,6 +649,7 @@ __STATIC_INLINE uint32_t TIMESTAMP_GET (void) {
 	SysTick->CTRL = 0x00000005;			// Enable SysTick,No Interrupt, Use CPU Clock
   return(ticks);
   //return (DWT->CYCCNT) / (CPU_CLOCK / TIMESTAMP_CLOCK);
+#endif
 }
 
 ///@}

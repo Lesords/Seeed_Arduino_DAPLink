@@ -51,7 +51,20 @@
  * GNU Compiler
  */
 #elif defined ( __GNUC__ )
-  #include "cmsis_gcc.h"
+  // #include "cmsis_gcc.h"
+
+  #ifndef   __ASM
+    #define __ASM                                  __asm
+  #endif
+  #ifndef   __STATIC_INLINE
+    #define __STATIC_INLINE                        static inline
+  #endif
+  #ifndef   __STATIC_FORCEINLINE
+    #define __STATIC_FORCEINLINE                   __STATIC_INLINE
+  #endif
+  #ifndef   __WEAK
+    #define __WEAK                                 __attribute__((weak))
+  #endif
 
 
 /*

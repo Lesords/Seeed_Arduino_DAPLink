@@ -291,7 +291,7 @@ extern void     DAP_Setup (void);
 #ifndef DELAY_SLOW_CYCLES
 #define DELAY_SLOW_CYCLES       3U      // Number of cycles for one iteration
 #endif
-#if defined(__CC_ARM)
+#if defined(__CC_ARM) || defined(ARDUINO_ARCH_ESP32)
 __STATIC_FORCEINLINE void PIN_DELAY_SLOW (uint32_t delay) {
   uint32_t count = delay;
   while (--count);

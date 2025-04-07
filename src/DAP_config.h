@@ -30,10 +30,15 @@
 #define __DAP_CONFIG_H__
 
 #if !defined(USE_TINYUSB)
+#if defined(ARDUINO_ARCH_ESP32)
+#include "Adafruit_TinyUSB.h"
+#else
 #error TinyUSB is not selected, please select it in "Tools->Menu->USB Stack"
+#endif
 #else
 #include "Adafruit_TinyUSB.h"
 #endif
+
 
 #define __forceinline __attribute__((always_inline))
 #define __weak
@@ -192,6 +197,17 @@ Provides definitions about:
 #define PIN_LED_CONNECTED PIN_LED_TXL
 #define PIN_LED_RUNNING   PIN_LED_RXL
 #define Fast              1
+
+#elif defined(ARDUINO_ARCH_ESP32)
+
+#define PIN_SWDIO         40 // MTDO
+#define PIN_SWCLK         39 // MTCK
+#define PIN_TDO           42 // MTMS
+#define PIN_TDI           41 // MTDI
+#define PIN_nRESET        45 // not use now
+#define PIN_LED_CONNECTED 46 // not use now
+#define PIN_LED_RUNNING   46 // not use now
+#define Fast              0
 
 #else
 
@@ -618,15 +634,20 @@ default, the DWT timer is used.  The frequency of this timer is configured with 
 /** Get timestamp of Test Domain Timer.
 \return Current timestamp value.
 */
-__STATIC_INLINE uint32_t TIMESTAMP_GET (void) {
+// __STATIC_INLINE uint32_t TIMESTAMP_GET (void) {
+inline uint32_t TIMESTAMP_GET (void) {
+#if defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_ARCH_RP2350) || defined(ARDUINO_ARCH_ESP32)
+  return micros(); // micros() same
+#else
   uint32_t ticks = SysTick->VAL;
-  	// Configure SysTick to trigger every millisecond using the CPU Clock
+  // Configure SysTick to trigger every millisecond using the CPU Clock
 	SysTick->CTRL = 0;					    // Disable SysTick
 	SysTick->LOAD = 0xFFFFFF;				// Set reload register for MAX Value
 	SysTick->VAL = 0;					      // Reset the SysTick counter value
 	SysTick->CTRL = 0x00000005;			// Enable SysTick,No Interrupt, Use CPU Clock
   return(ticks);
   //return (DWT->CYCCNT) / (CPU_CLOCK / TIMESTAMP_CLOCK);
+#endif
 }
 
 ///@}

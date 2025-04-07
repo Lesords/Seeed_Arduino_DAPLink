@@ -47,6 +47,7 @@
 #error "Maximum Packet Count is 255!"
 #endif
 
+#define USBDevice TinyUSBDevice
 
 // Clock Macros
 

@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 
+#if !defined(ARDUINO_ARCH_ESP32)
 /* Parity enumerator */
 typedef enum {
   UART_PARITY_NONE    = 0,
@@ -33,6 +34,7 @@ typedef enum {
   UART_STOP_BITS_1_5  = 1,
   UART_STOP_BITS_2    = 2
 } UART_StopBits;
+#endif
 
 /* Data Bits enumerator */
 typedef enum {
@@ -54,8 +56,13 @@ typedef enum {
 typedef struct {
   uint32_t           Baudrate;
   UART_DataBits      DataBits;
+#if !defined(ARDUINO_ARCH_ESP32)
   UART_Parity        Parity;
   UART_StopBits      StopBits;
+#else
+  uart_parity_t      Parity;
+  uart_stop_bits_t   StopBits;
+#endif
   UART_FlowControl   FlowControl;
 } UART_Configuration;
 
